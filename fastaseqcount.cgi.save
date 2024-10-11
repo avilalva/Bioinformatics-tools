@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use CGI qw(:standard);
+use CGI::Carp qw(fatalsToBrowser);
+use File::Basename;
+
+# Print the HTML header
+print header();
+print start_html(
+    -title  => 'FASTA Sequence Counter',
+    -style  => {-src => 'https://example.com/style.css'}  # You can change to your CSS if needed
+);
+
+# HTML form to upload multiple files
+print "<div style='text-align: center; padding-top: 50px;'>";
+print "<img src='https://example.com/image.png' alt='Logo' style='max-width: 200px; margin-bottom: 20px;'>"; # Change the image URL
+print "<h1>Upload FASTA Files</h1>";
+print start_multipart_form(),
+    filefield(-name => 'uploaded_files', -multiple => 'true', -accept => 'text/plain'),
+    submit(-value => 'Upload'),
+    end_form();
+print "</div>";
+
+# Handle file uploads
+if (param('uploaded_files')) {
+    my @file_handles = upload('uploaded_files');
+    
+    if (@file_handles) {
+        print "<div style='text-align: center; padding-top: 30px;'>";
+        
+        # Iterate over each uploaded file
+        foreach my $file_handle (@file_handles) {
+            # Get the file name for the current uploaded file
+            my $file_name = basename(param($file_handle));
+
+            my $fasta_data = '';
+            
+            # Read the file content
+            while (<$file_handle>) {
+                $fasta_data .= $_;
+            }
+            
+            # Count the number of FASTA sequences
+            my $fasta_count = () = $fasta_data =~ /^>/mg;
+            
+            # Display the count for each file
+            print "<h2>Number of sequences in $file_name is: $fasta_count</h2>";
+ 
